@@ -1,0 +1,20 @@
+/// const pool table entry
+enum CpInfo {
+    Class { name_index: u16 },
+    FieldRef { class_index: u16, name_and_type_index: u16 },
+    MethodRef { class_index: u16, name_and_type_index: u16 },
+    InterfaceMethodRef { class_index: u16, name_and_type_index: u16 },
+    String { string_index: u16 },
+    Integer(u4),
+    Float(f32),
+    Long(i64),
+    Double(f64),
+    NameAndTuple { name_index: u16, descriptor_index: u16 },
+    Utf8 { size: u16, bytes: [u8] },
+    MethodHandle,
+    MethodType,
+    Dynamic,
+    InvokeDynamic,
+    Module,
+    Package,
+}
