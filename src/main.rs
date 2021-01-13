@@ -5,6 +5,7 @@ mod const_pool;
 mod class_file;
 mod class_parser;
 mod call_stack;
+mod method_area;
 
 struct MethodInfo {
     // The maximum operand stack size

@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ops::Add;
 
-use crate::call_stack::{Class, Method};
 use crate::const_pool::CpInfo::Utf8;
+use crate::method_area::{Class, Method};
 
 /// const pool table entry
 pub enum CpInfo<'a> {
@@ -53,7 +53,7 @@ impl ConstPool<'_> {
 
     // fixme
     #[allow(clippy::needless_lifetimes)]
-    fn new<'a>(data: &'a [CpInfo]) -> ConstPool<'a> {
+    pub(crate) fn new<'a>(data: &'a [CpInfo]) -> ConstPool<'a> {
         return ConstPool {
             value: data,
             cache: Default::default(),
@@ -61,7 +61,7 @@ impl ConstPool<'_> {
     }
 }
 
-// 12.3.2
+// 12.3.2, 2.5.4
 struct MethodTable<'a> {
     value: HashMap<&'a str, Method<'a>>
 }
@@ -94,13 +94,14 @@ impl<'a> ClassTable<'a> {
     }
 }
 
+
 #[cfg(test)]
-mod tests {
-    use crate::call_stack::Method;
+pub mod tests {
     use crate::const_pool::{ConstPool, CpInfo, MethodTable};
+    use crate::method_area::Method;
     use crate::Opcode;
 
-    const CONST_POOL_SAMPLE: [CpInfo; 18] = [
+    pub(crate) const CONST_POOL_SAMPLE: [CpInfo; 18] = [
         CpInfo::Placeholder,
         CpInfo::MethodRef { class_index: 4, name_and_type_index: 14 },
         CpInfo::MethodRef { class_index: 3, name_and_type_index: 15 },

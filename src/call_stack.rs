@@ -1,40 +1,69 @@
-use crate::Opcode;
 use std::collections::HashMap;
+
+use crate::method_area::Method;
+use crate::Opcode;
+use crate::const_pool::ConstPool;
+
+// 2.5.2
+struct JvmStack<'a> {
+    frames: Vec<Frame<'a>>
+}
 
 // §2.6
 struct Frame<'a> {
     pc: usize,
     // §2.6.1
-    locals: &'a mut [i32],
+    locals: Vec<i32>,
     // §2.6.2
     operand_stack: Vec<i32>,
     // §2.5.5
-    constant_pool: i32,
+    constant_pool: &'a ConstPool<'a>,
     method: Method<'a>,
 }
 
-struct Stack {}
-
-pub(crate) struct Method<'a> {
-    pub codes: &'a [Opcode]
-}
-
-pub struct Class<'a> {
-    super_class: &'a Option<Class<'a>>,
-    const_pool: crate::const_pool::ConstPool<'a>,
-    methods: HashMap<&'a str, Method<'a>>,
-}
-
+#[derive(Debug, PartialEq)]
 enum FrameResult {
     End,
+    ReturnValue(i32),
     Invoke,
 }
 
-impl Frame<'_> {
-    // fn new() -> Frame {}
+impl JvmStack<'_> {
+    fn new(max_size: usize, main: Frame) -> JvmStack {
+        let mut stack = Vec::with_capacity(max_size);
+        stack.push(main);
+
+        JvmStack { frames: stack }
+    }
+
     fn run(&mut self) {
-        let mut stack: Vec<i32> = vec![];
-        // let mut pc = 0;
+        while !self.frames.is_empty() {
+            let mut frame = self.frames.pop().unwrap();
+            match frame.run() {
+                FrameResult::End => {}
+                FrameResult::ReturnValue(_) => {}
+                FrameResult::Invoke => {}
+            }
+        }
+    }
+}
+
+impl Frame<'_> {
+    fn new<'a>(locals: Vec<i32>,
+               stack_size: usize,
+               method: Method<'a>,
+               constant_pool: &'a ConstPool,
+    ) -> Frame<'a> {
+        Frame {
+            pc: 0,
+            locals,
+            operand_stack: Vec::with_capacity(stack_size),
+            constant_pool,
+            method,
+        }
+    }
+    fn run(&mut self) -> FrameResult {
+        let mut stack: &mut Vec<i32> = &mut self.operand_stack;
 
         loop {
             // println!("stack is {:?}, locals is {:?}", stack, locals);
@@ -67,52 +96,23 @@ impl Frame<'_> {
                     let result = stack.pop().unwrap() + stack.pop().unwrap();
                     stack.push(result);
                 }
-                Opcode::ireturn => break
+                Opcode::ireturn => return FrameResult::ReturnValue(stack.pop().unwrap())
             }
         }
+        FrameResult::End
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::call_stack::{Frame, Method};
+    use crate::call_stack::{Frame, FrameResult};
+    use crate::method_area::Method;
     use crate::Opcode;
-
-    // fn new(locals: Vec<i32>, stack_size: usize, method: Method) -> Frame {
-    //     Frame {
-    //         pc: 0,
-    //         locals,
-    //         operand_stack: Vec::with_capacity(stack_size),
-    //         constant_pool: 0,
-    //         method,
-    //     }
-    // }
-
+    use crate::const_pool::ConstPool;
+    use crate::const_pool::tests::CONST_POOL_SAMPLE;
 
     #[test]
-    fn can_run_single_frame() {
-        let mut f = Frame {
-            pc: 0,
-            locals: &mut [0; 3],
-            operand_stack: vec![0; 3],
-            constant_pool: 0,
-            method: Method {
-                codes: &[
-                    Opcode::iconst_0,     // 0
-                    Opcode::istore_1,     // 1
-                    Opcode::goto(4),      // 2
-                    Opcode::iinc(1, 1),   // 3
-                    Opcode::iload_1,      // 4
-                    Opcode::bipush(100),  // 5
-                    Opcode::if_icmplt(3), // 6
-                ]
-            },
-        };
-        f.run()
-    }
-
-    #[test]
-    fn simple_function_call() {
+    fn run_single_frame() {
         ///```java
         /// public class Adder {
         ///    public static int add(int x, int y) {
@@ -124,20 +124,26 @@ mod tests {
         ///    }
         ///}
         /// ```
-        let mut main_frame = Frame {
-            pc: 0,
-            locals: &mut [0; 1],
-            operand_stack: vec![0; 2],
-            constant_pool: 0,
-            method: Method {
+        // let empty_const_pool_entries = [];
+        // let empty_const_pool = &ConstPool::new(&empty_const_pool_entries);
+        let const_pool = &ConstPool::new(&CONST_POOL_SAMPLE);
+        let mut frame = Frame::new(
+            vec![0; 3],
+            3,
+            Method {
                 codes: &[
-                    Opcode::iconst_1,
-                    Opcode::iconst_1,
-                    Opcode::invokestatic(2),
-                    Opcode::istore_0,
-                    Opcode::r#return
-                ]
+                    Opcode::iconst_0,     // 0
+                    Opcode::istore_1,     // 1
+                    Opcode::goto(4),      // 2
+                    Opcode::iinc(1, 1),   // 3
+                    Opcode::iload_1,      // 4
+                    Opcode::bipush(100),  // 5
+                    Opcode::if_icmplt(3), // 6
+                ],
             },
-        };
+            const_pool,
+        );
+
+        assert_eq!(frame.run(), FrameResult::End);
     }
 }

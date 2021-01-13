@@ -1,7 +1,7 @@
 use crate::*;
 use std::collections::VecDeque;
 use std::slice::Iter;
-use crate::call_stack::Class;
+use crate::method_area::Class;
 use crate::const_pool::ConstPool;
 
 #[test]
