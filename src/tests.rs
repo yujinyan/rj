@@ -1,6 +1,8 @@
 use crate::*;
 use std::collections::VecDeque;
 use std::slice::Iter;
+use crate::call_stack::Class;
+use crate::const_pool::ConstPool;
 
 #[test]
 fn simple_loop() {
@@ -25,30 +27,22 @@ fn simple_loop() {
         Opcode::if_icmplt(3), // 6
     ];
     let mut locals = vec![0; info.frame_size.into()];
-    run(info, &codes, &mut locals);
+    // run(info, &codes, &mut locals);
     assert_eq!(1 + 1, 2)
 }
 
 #[test]
-fn play() {
-    let a = vec![1, 2, 3];
-    println!("numbers is {}", add(&a));
-    println!("a is {:?}", a)
+fn adder() {
+    let mut class_table = const_pool::ClassTable::new();
+    // class_table.add("Adder", Class {
+    //     super_class: None,
+    //     const_pool: ConstPool {
+    //         value: [],
+    //         cache: Default::default(),
+    //         method_table: &()
+    //     },
+    //     methods: Default::default()
+    // })
 }
 
-fn add(numbers: &Vec<i32>) -> i32 {
-    return numbers.iter().fold(0, |x, y| x + y);
-}
 
-fn add2(numbers: &Vec<i32>) -> i32 {
-    return numbers.iter().sum()
-}
-
-trait Summable<T> {
-    fn sum(self) -> i32;
-}
-impl<T> Summable<T> for Iter<'_, T> {
-    fn sum(self) -> i32 {
-        self.fold(0, |x, y| x + y)
-    }
-}
