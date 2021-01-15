@@ -115,7 +115,7 @@ impl Frame<'_> {
                 }
                 Opcode::r#return => break,
                 Opcode::invokestatic(index) => {
-                    let method = self.constant_pool.resolve_utf8(index.into());
+                    let method = self.constant_pool.resolve_utf8(*index as u16);
                     return FrameResult::Invoke(method);
                 }
                 Opcode::iload_0 => stack.push(self.locals[0]),

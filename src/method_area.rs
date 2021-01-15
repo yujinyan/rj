@@ -20,19 +20,19 @@ pub(crate) struct Class<'a> {
     methods: HashMap<&'a str, Method<'a>>,
 }
 
-impl MethodTable<'_> {
-    pub(crate) fn new<'a>() -> MethodTable<'a> {
+impl<'a> MethodTable<'a> {
+    pub(crate) fn new() -> MethodTable<'a> {
         MethodTable {
             methods: Default::default(),
             classes: Default::default(),
         }
     }
 
-    fn put<'a>(&mut self, key: &'a str, method: Method<'a>) {
+    fn put(&mut self, key: &'a str, method: Method<'a>) {
         self.methods.insert(key, method);
     }
 
-    pub(crate) fn resolve_method<'a>(&mut self, key: &str) -> &Method {
+    pub(crate) fn resolve_method(&self, key: &str) -> &Method {
         let method = self.methods.get(key);
         match method {
             None => panic!("not available"),
@@ -40,7 +40,7 @@ impl MethodTable<'_> {
         }
     }
 
-    pub(crate) fn resolve_class<'a>(&mut self, key: &str) -> &Class {
+    pub(crate) fn resolve_class(&self, key: &str) -> &Class {
         let class = self.classes.get(key);
         match class {
             None => panic!("not available"),
