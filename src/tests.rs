@@ -1,8 +1,6 @@
 use crate::*;
-use std::collections::VecDeque;
-use std::slice::Iter;
-use crate::method_area::Class;
 use crate::const_pool::ConstPool;
+use crate::method_area::Class;
 
 #[test]
 fn simple_loop() {

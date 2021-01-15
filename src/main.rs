@@ -1,5 +1,3 @@
-use std::io::Read;
-
 mod tests;
 mod const_pool;
 mod class_file;
@@ -18,13 +16,12 @@ struct MethodInfo {
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 enum Opcode {
-    iload_0,
     // push int const 0
+    iload_0,
     iconst_0,
     iconst_1,
     iload_1,
     istore_0,
-    // push local variable 1
     istore_1,
     // store into local variable 1
     iadd,
@@ -38,7 +35,7 @@ enum Opcode {
     if_icmplt(usize),
     //
     r#return,
-    invokestatic(u16)
+    invokestatic(usize)
 }
 
 // fn run(info: MethodInfo, codes: &[Opcode], locals: &mut [i32]) {
