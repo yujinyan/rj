@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Opcode, const_pool};
+use crate::{const_pool, Opcode};
 
 pub(crate) struct Method<'a> {
     pub stack_size: usize,
@@ -9,7 +9,7 @@ pub(crate) struct Method<'a> {
     pub class: &'a str,
 }
 
-pub(crate) struct MethodTable<'a> {
+pub(crate) struct MethodArea<'a> {
     methods: HashMap<&'a str, Method<'a>>,
     classes: HashMap<&'a str, Class<'a>>,
 }
@@ -20,9 +20,9 @@ pub(crate) struct Class<'a> {
     pub(crate) methods: HashMap<&'a str, Method<'a>>,
 }
 
-impl<'a> MethodTable<'a> {
-    pub(crate) fn new() -> MethodTable<'a> {
-        MethodTable {
+impl<'a> MethodArea<'a> {
+    pub(crate) fn new() -> MethodArea<'a> {
+        MethodArea {
             methods: Default::default(),
             classes: Default::default(),
         }
@@ -53,31 +53,13 @@ impl<'a> MethodTable<'a> {
     }
 }
 
-struct ClassTable<'a> {
-    table: HashMap<&'a str, Class<'a>>
-}
-
-impl ClassTable<'_> {
-    fn new() -> ClassTable<'static> {
-        ClassTable {
-            table: Default::default()
-        }
-    }
-
-    // fn add(&mut self, name: &str, class: Class) {
-    //     self.table.insert(name, class);
-    // }
-
-    fn resolve_method() {}
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::method_area::{Method, MethodTable};
+    use crate::method_area::{Method, MethodArea};
 
     #[test]
     fn can_put_and_resolve_from_method_table() {
-        let mut table = MethodTable::new();
+        let mut table = MethodArea::new();
         table.put("foo", Method {
             codes: &[],
             stack_size: 2,

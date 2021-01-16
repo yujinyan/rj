@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use crate::const_pool::ConstPool;
-use crate::method_area::{Method, MethodTable, Class};
+use crate::method_area::{Method, MethodArea, Class};
 use crate::Opcode;
 
 // 2.5.2
 struct JvmStack<'a> {
     frames: Vec<Frame<'a>>,
-    method_table: &'a MethodTable<'a>,
+    method_table: &'a MethodArea<'a>,
 }
 
 // §2.6
@@ -33,7 +33,7 @@ impl JvmStack<'_> {
     fn new<'a>(
         max_size: usize,
         main: Frame<'a>,
-        method_table: &'a MethodTable<'a>,
+        method_table: &'a MethodArea<'a>,
     ) -> JvmStack<'a> {
         let mut stack = Vec::with_capacity(max_size);
         stack.push(main);
@@ -143,13 +143,13 @@ mod tests {
     use crate::call_stack::{Frame, FrameResult, JvmStack};
     use crate::const_pool::ConstPool;
     use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
-    use crate::method_area::{Method, Class, MethodTable};
+    use crate::method_area::{Method, Class, MethodArea};
     use crate::Opcode;
     use crate::const_pool::CpInfo::Class as CpClass;
 
     #[test]
     fn create_new_stack() {
-        let method_table = MethodTable::new();
+        let method_table = MethodArea::new();
         let const_pool = &ConstPool::new(&CONST_POOL_SAMPLE);
         let frame = Frame::new(Vec::new(), &Method {
             codes: &[],
@@ -201,7 +201,7 @@ mod tests {
         let const_pool = &test_const_pool();
         let main_method = &Method {
             stack_size: 2,
-            local_size: 1, // fixme redundant
+            local_size: 1,
             codes: &[
                 Opcode::iconst_1,     // 0
                 Opcode::iconst_1,
@@ -224,7 +224,7 @@ mod tests {
         };
 
         let mut main_frame = Frame::new(vec![0; 1], main_method, const_pool);
-        let mut method_area = MethodTable::new();
+        let mut method_area = MethodArea::new();
         method_area.put("Adder.add:(II)I", add_method);
         method_area.put_class("Adder", crate::method_area::Class {
             super_class: &None,
