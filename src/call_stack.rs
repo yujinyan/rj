@@ -174,7 +174,7 @@ mod tests {
                     Opcode::goto(4),      // 2
                     Opcode::iinc(1, 1),   // 3
                     Opcode::iload_1,      // 4
-                    Opcode::bipush(100),  // 5
+                    Opcode::bipush(10),   // 5
                     Opcode::if_icmplt(3), // 6
                 ],
                 class: "",

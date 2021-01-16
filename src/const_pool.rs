@@ -50,11 +50,6 @@ impl ConstPool<'_> {
         };
     }
 
-    // fn resolve_method(&self, index: u16) -> &Method {
-    // let method_name = self.resolve_utf8(index);
-    // return self.method_table.resolve(method_name);
-    // }
-
     // fixme
     #[allow(clippy::needless_lifetimes)]
     pub(crate) fn new<'a>(
@@ -67,47 +62,10 @@ impl ConstPool<'_> {
     }
 }
 
-// 12.3.2, 2.5.4
-struct MethodTable<'a> {
-    value: HashMap<&'a str, Method<'a>>
-}
-
-impl<'a> MethodTable<'a> {
-    fn add(&mut self, key: &'a str, method: Method<'a>) {
-        self.value.insert(key, method);
-    }
-
-    fn resolve(&self, key: &str) -> &Method {
-        self.value.get(key).unwrap()
-    }
-
-    fn new() -> MethodTable<'static> {
-        return MethodTable {
-            value: HashMap::new()
-        };
-    }
-}
-
-pub(crate) struct ClassTable<'a> {
-    value: HashMap<&'a str, Class<'a>>
-}
-
-impl<'a> ClassTable<'a> {
-    pub(crate) fn add(&mut self, key: &'a str, class: Class<'a>) {
-        self.value.insert(key, class);
-    }
-
-    pub(crate) fn new() -> ClassTable<'static> {
-        return ClassTable {
-            value: HashMap::new()
-        };
-    }
-}
-
 
 #[cfg(test)]
 pub mod tests {
-    use crate::const_pool::{ConstPool, CpInfo, MethodTable};
+    use crate::const_pool::{ConstPool, CpInfo};
     use crate::method_area::Method;
     use crate::Opcode;
 
@@ -134,36 +92,6 @@ pub mod tests {
 
     pub(crate) fn test_const_pool() -> ConstPool<'static> {
         ConstPool::new(&CONST_POOL_SAMPLE)
-    }
-
-    #[test]
-    fn resolve_utf8_from_const_pool() {
-        let table = &MethodTable::new();
-        let const_pool = ConstPool::new(&CONST_POOL_SAMPLE);
-        assert_eq!(r#"java/lang/Object.<init>:()V"#, const_pool.resolve_utf8(1));
-        assert_eq!(r#"Adder.add:(II)I"#, const_pool.resolve_utf8(2));
-    }
-
-    #[test]
-    fn say_hi() {
-        let mut method_table = MethodTable::new();
-        method_table.add(r#"java/lang/Object."<init>":()V"#, Method {
-            codes: &[],
-            stack_size: 3,
-            local_size: 0,
-            class: ""
-        });
-        method_table.add(r#"Adder.add:(II)I"#, Method {
-            stack_size: 3,
-            local_size: 0,
-            codes: &[
-                Opcode::iload_0,
-                Opcode::iload_1,
-                Opcode::iadd,
-                Opcode::ireturn
-            ],
-            class: ""
-        });
     }
 }
 

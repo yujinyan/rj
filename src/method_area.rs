@@ -2,16 +2,17 @@ use std::collections::HashMap;
 
 use crate::{const_pool, Opcode};
 
+// JLS §12.3.2, JVMS §2.5.4
+pub(crate) struct MethodArea<'a> {
+    methods: HashMap<&'a str, Method<'a>>,
+    classes: HashMap<&'a str, Class<'a>>,
+}
+
 pub(crate) struct Method<'a> {
     pub stack_size: usize,
     pub local_size: usize,
     pub codes: &'a [Opcode],
     pub class: &'a str,
-}
-
-pub(crate) struct MethodArea<'a> {
-    methods: HashMap<&'a str, Method<'a>>,
-    classes: HashMap<&'a str, Class<'a>>,
 }
 
 pub(crate) struct Class<'a> {
