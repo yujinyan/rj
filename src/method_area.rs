@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Opcode;
+use crate::{Opcode, const_pool};
 
 pub(crate) struct Method<'a> {
     pub stack_size: usize,
@@ -15,9 +15,9 @@ pub(crate) struct MethodTable<'a> {
 }
 
 pub(crate) struct Class<'a> {
-    super_class: &'a Option<Class<'a>>,
-    pub const_pool: crate::const_pool::ConstPool<'a>,
-    methods: HashMap<&'a str, Method<'a>>,
+    pub(crate) super_class: &'a Option<Class<'a>>,
+    pub const_pool: const_pool::ConstPool<'a>,
+    pub(crate) methods: HashMap<&'a str, Method<'a>>,
 }
 
 impl<'a> MethodTable<'a> {
@@ -28,8 +28,12 @@ impl<'a> MethodTable<'a> {
         }
     }
 
-    fn put(&mut self, key: &'a str, method: Method<'a>) {
+    pub(crate) fn put(&mut self, key: &'a str, method: Method<'a>) {
         self.methods.insert(key, method);
+    }
+
+    pub(crate) fn put_class(&mut self, key: &'a str, class: Class<'a>) {
+        self.classes.insert(key, class);
     }
 
     pub(crate) fn resolve_method(&self, key: &str) -> &Method {
@@ -43,7 +47,7 @@ impl<'a> MethodTable<'a> {
     pub(crate) fn resolve_class(&self, key: &str) -> &Class {
         let class = self.classes.get(key);
         match class {
-            None => panic!("not available"),
+            None => panic!("{:?} not available", key),
             Some(c) => return c
         }
     }

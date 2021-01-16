@@ -46,7 +46,12 @@ impl JvmStack<'_> {
             let mut frame = self.frames.pop().unwrap();
             match frame.run() {
                 FrameResult::End => {}
-                FrameResult::ReturnValue(_) => {}
+                FrameResult::ReturnValue(v) => {
+                    // last() does not gain ownership
+                    let mut invoker = self.frames.pop().unwrap();
+                    invoker.push(v);
+                    self.frames.push(invoker);
+                }
                 FrameResult::Invoke(method_name) => {
                     let method: &Method = self.method_table.resolve_method(method_name);
                     let class: &Class = self.method_table.resolve_class(method.class);
@@ -54,11 +59,12 @@ impl JvmStack<'_> {
 
                     for i in 0..method.local_size {
                         let arg = frame.pop();
-                        locals[i] = arg
+                        locals.push(arg);
                     }
 
-                    let frame = Frame::new(locals, method, &class.const_pool);
+                    let invoked = Frame::new(locals, method, &class.const_pool);
                     self.frames.push(frame);
+                    self.frames.push(invoked);
                 }
             }
         }
@@ -95,6 +101,8 @@ impl Frame<'_> {
                 Some(v) => v,
                 None => break,
             };
+
+            dbg!(code);
 
             self.pc += 1;
             match code {
@@ -135,8 +143,9 @@ mod tests {
     use crate::call_stack::{Frame, FrameResult, JvmStack};
     use crate::const_pool::ConstPool;
     use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
-    use crate::method_area::{Method, MethodTable};
+    use crate::method_area::{Method, Class, MethodTable};
     use crate::Opcode;
+    use crate::const_pool::CpInfo::Class as CpClass;
 
     #[test]
     fn create_new_stack() {
@@ -153,19 +162,6 @@ mod tests {
 
     #[test]
     fn run_single_frame() {
-        ///```java
-        /// public class Adder {
-        ///    public static int add(int x, int y) {
-        ///        return x + y;
-        ///    }
-        ///
-        ///    public static void main() {
-        ///        int s = add(1, 1);
-        ///    }
-        ///}
-        /// ```
-        // let empty_const_pool_entries = [];
-        // let empty_const_pool = &ConstPool::new(&empty_const_pool_entries);
         let const_pool = &test_const_pool();
         let mut frame = Frame::new(
             vec![0; 3],
@@ -187,5 +183,55 @@ mod tests {
         );
 
         assert_eq!(frame.run(), FrameResult::End);
+    }
+
+    ///```java
+    /// public class Adder {
+    ///    public static int add(int x, int y) {
+    ///        return x + y;
+    ///    }
+    ///
+    ///    public static void main() {
+    ///        int s = add(1, 1);
+    ///    }
+    ///}
+    /// ```
+    #[test]
+    fn run_adder() {
+        let const_pool = &test_const_pool();
+        let main_method = &Method {
+            stack_size: 2,
+            local_size: 1, // fixme redundant
+            codes: &[
+                Opcode::iconst_1,     // 0
+                Opcode::iconst_1,
+                Opcode::invokestatic(2),
+                Opcode::istore_0,
+                Opcode::r#return
+            ],
+            class: "Adder",
+        };
+        let add_method = Method {
+            stack_size: 2,
+            local_size: 2,
+            codes: &[
+                Opcode::iload_0,
+                Opcode::iload_1,
+                Opcode::iadd,
+                Opcode::ireturn,
+            ],
+            class: "Adder",
+        };
+
+        let mut main_frame = Frame::new(vec![0; 1], main_method, const_pool);
+        let mut method_area = MethodTable::new();
+        method_area.put("Adder.add:(II)I", add_method);
+        method_area.put_class("Adder", crate::method_area::Class {
+            super_class: &None,
+            const_pool: ConstPool::new(&CONST_POOL_SAMPLE),
+            methods: Default::default(),
+        });
+        let mut jvm_stack = JvmStack::new(256, main_frame, &method_area);
+        jvm_stack.run();
     }
 }
