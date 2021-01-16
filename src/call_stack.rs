@@ -4,7 +4,7 @@ use crate::const_pool::ConstPool;
 use crate::method_area::{Method, MethodArea, Class};
 use crate::Opcode;
 
-// 2.5.2
+// §2.5.2
 struct JvmStack<'a> {
     frames: Vec<Frame<'a>>,
     method_table: &'a MethodArea<'a>,
