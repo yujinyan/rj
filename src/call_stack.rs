@@ -131,7 +131,8 @@ impl Frame<'_> {
                     let result = stack.pop().unwrap() + stack.pop().unwrap();
                     stack.push(result);
                 }
-                Opcode::ireturn => return FrameResult::ReturnValue(stack.pop().unwrap())
+                Opcode::ireturn => return FrameResult::ReturnValue(stack.pop().unwrap()),
+                _ => unimplemented!("opcode {:?}", code)
             }
         }
         FrameResult::End

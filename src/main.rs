@@ -8,9 +8,10 @@ mod method_area;
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 enum Opcode {
-    iload_0,
+    aload_0,
     iconst_0,
     iconst_1,
+    iload_0,
     iload_1,
     istore_0,
     istore_1,
@@ -22,6 +23,7 @@ enum Opcode {
     if_icmplt(usize),
     r#return,
     invokestatic(usize),
+    invokespecial(u16),
 }
 
 

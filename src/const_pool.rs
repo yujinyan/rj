@@ -6,6 +6,7 @@ use crate::const_pool::CpInfo::Utf8;
 use crate::method_area::{Class, Method};
 
 /// const pool table entry
+#[derive(Debug)]
 pub enum CpInfo<'a> {
     // empty placeholder
     Placeholder,
