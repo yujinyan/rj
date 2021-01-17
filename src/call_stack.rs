@@ -18,7 +18,7 @@ struct Frame<'a> {
     // §2.6.2
     operand_stack: Vec<i32>,
     // §2.5.5
-    constant_pool: &'a ConstPool<'a>,
+    constant_pool: &'a ConstPool,
     method: &'a Method<'a>,
 }
 
@@ -152,37 +152,34 @@ mod tests {
     fn create_new_stack() {
         let method_table = MethodArea::new();
         let const_pool = &ConstPool::new(&CONST_POOL_SAMPLE);
-        let frame = Frame::new(Vec::new(), &Method {
-            codes: &[],
+        let method = &Method {
+            codes: vec![],
             stack_size: 2,
             local_size: 0,
             class: "",
-        }, const_pool);
+        };
+        let frame = Frame::new(Vec::new(), method, const_pool);
         let stack = JvmStack::new(128, frame, &method_table);
     }
 
     #[test]
     fn run_single_frame() {
         let const_pool = &test_const_pool();
-        let mut frame = Frame::new(
-            vec![0; 3],
-            &Method {
-                stack_size: 3,
-                local_size: 0,
-                codes: &[
-                    Opcode::iconst_0,     // 0
-                    Opcode::istore_1,     // 1
-                    Opcode::goto(4),      // 2
-                    Opcode::iinc(1, 1),   // 3
-                    Opcode::iload_1,      // 4
-                    Opcode::bipush(10),   // 5
-                    Opcode::if_icmplt(3), // 6
-                ],
-                class: "",
-            },
-            const_pool,
-        );
-
+        let method = &Method {
+            stack_size: 3,
+            local_size: 0,
+            codes: vec![
+                Opcode::iconst_0,     // 0
+                Opcode::istore_1,     // 1
+                Opcode::goto(4),      // 2
+                Opcode::iinc(1, 1),   // 3
+                Opcode::iload_1,      // 4
+                Opcode::bipush(10),   // 5
+                Opcode::if_icmplt(3), // 6
+            ],
+            class: "",
+        };
+        let mut frame = Frame::new(vec![0; 3], method, const_pool);
         assert_eq!(frame.run(), FrameResult::End);
     }
 
@@ -203,7 +200,7 @@ mod tests {
         let main_method = &Method {
             stack_size: 2,
             local_size: 1,
-            codes: &[
+            codes: vec![
                 Opcode::iconst_1,     // 0
                 Opcode::iconst_1,
                 Opcode::invokestatic(2),
@@ -215,7 +212,7 @@ mod tests {
         let add_method = Method {
             stack_size: 2,
             local_size: 2,
-            codes: &[
+            codes: vec![
                 Opcode::iload_0,
                 Opcode::iload_1,
                 Opcode::iadd,

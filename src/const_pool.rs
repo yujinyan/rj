@@ -7,7 +7,7 @@ use crate::method_area::{Class, Method};
 
 /// const pool table entry
 #[derive(Debug)]
-pub enum CpInfo<'a> {
+pub enum CpInfo {
     // empty placeholder
     Placeholder,
     Class { name_index: u16 },
@@ -20,7 +20,7 @@ pub enum CpInfo<'a> {
     Long(i64),
     Double(f64),
     NameAndTuple { name_index: u16, descriptor_index: u16 },
-    Utf8(&'a str),
+    Utf8(String),
     MethodHandle,
     MethodType,
     Dynamic,
@@ -29,12 +29,34 @@ pub enum CpInfo<'a> {
     Package,
 }
 
-pub(crate) struct ConstPool<'a> {
-    value: &'a [CpInfo<'a>],
-    cache: HashMap<u16, CpInfo<'a>>,
+// todo: convert vec to array?
+#[derive(Debug)]
+pub(crate) struct ConstPool {
+    value: Vec<CpInfo>,
+    cache: HashMap<u16, CpInfo>,
 }
 
-impl ConstPool<'_> {
+impl ConstPool {
+    pub(crate) fn test(&self) -> String {
+        String::from("abc")
+    }
+
+    // pub(crate) fn resolve_utf8_2(&self, index: u16) -> String {
+    //     match self.value.get(index as usize).unwrap() {
+    //         CpInfo::Utf8(v) => String::from(v),
+    //         CpInfo::Class { name_index } => self.resolve_utf8(*name_index),
+    //         CpInfo::NameAndTuple { name_index, descriptor_index } => Box::leak(format!(
+    //             "{}:{}",// https://stackoverflow.com/a/51286293/6627776
+    //             self.resolve_utf8(*name_index), self.resolve_utf8(*descriptor_index),
+    //         ).into_boxed_str()),
+    //         CpInfo::MethodRef { class_index, name_and_type_index } => Box::leak(format!(
+    //             "{}.{}",
+    //             self.resolve_utf8(*class_index), self.resolve_utf8(*name_and_type_index),
+    //         ).into_boxed_str()),
+    //         _ => panic!("not supported")
+    //     }
+    // }
+
     pub(crate) fn resolve_utf8(&self, index: u16) -> &str {
         return match self.value.get(index as usize).unwrap() {
             CpInfo::Utf8(v) => v,
@@ -55,7 +77,17 @@ impl ConstPool<'_> {
     #[allow(clippy::needless_lifetimes)]
     pub(crate) fn new<'a>(
         data: &'a [CpInfo],
-    ) -> ConstPool<'a> {
+    ) -> ConstPool {
+        unimplemented!()
+        // return ConstPool {
+        //     value: data.to_vec(),
+        //     cache: Default::default(),
+        // };
+    }
+
+    pub(crate) fn from_vec(
+        data: Vec<CpInfo>
+    ) -> ConstPool {
         return ConstPool {
             value: data,
             cache: Default::default(),
@@ -70,28 +102,28 @@ pub mod tests {
     use crate::method_area::Method;
     use crate::Opcode;
 
-    pub(crate) const CONST_POOL_SAMPLE: [CpInfo; 18] = [
+    pub(crate) const CONST_POOL_SAMPLE: [CpInfo; 5] = [
         CpInfo::Placeholder,
         CpInfo::MethodRef { class_index: 4, name_and_type_index: 14 },
         CpInfo::MethodRef { class_index: 3, name_and_type_index: 15 },
         CpInfo::Class { name_index: 16 },
         CpInfo::Class { name_index: 17 },
-        CpInfo::Utf8("<init>"),
-        CpInfo::Utf8("()V"),
-        CpInfo::Utf8("Code"),
-        CpInfo::Utf8("LineNumberTable"),
-        CpInfo::Utf8("add"),
-        CpInfo::Utf8("(II)I"),
-        CpInfo::Utf8("main"),
-        CpInfo::Utf8("SourceFile"),
-        CpInfo::Utf8("Adder.java"),
-        CpInfo::NameAndTuple { name_index: 5, descriptor_index: 6 },
-        CpInfo::NameAndTuple { name_index: 9, descriptor_index: 10 },
-        CpInfo::Utf8("Adder"),
-        CpInfo::Utf8("java/lang/Object")
+        // CpInfo::Utf8("<init>".to_string()),
+        // CpInfo::Utf8("()V".to_string()),
+        // CpInfo::Utf8("Code".to_string()),
+        // CpInfo::Utf8("LineNumberTable".to_string()),
+        // CpInfo::Utf8("add".to_string()),
+        // CpInfo::Utf8("(II)I".to_string()),
+        // CpInfo::Utf8("main".to_string()),
+        // CpInfo::Utf8("SourceFile".to_string()),
+        // CpInfo::Utf8("Adder.java".to_string()),
+        // CpInfo::NameAndTuple { name_index: 5, descriptor_index: 6 },
+        // CpInfo::NameAndTuple { name_index: 9, descriptor_index: 10 },
+        // CpInfo::Utf8("Adder".to_string()),
+        // CpInfo::Utf8("java/lang/Object".to_string())
     ];
 
-    pub(crate) fn test_const_pool() -> ConstPool<'static> {
+    pub(crate) fn test_const_pool() -> ConstPool {
         ConstPool::new(&CONST_POOL_SAMPLE)
     }
 }

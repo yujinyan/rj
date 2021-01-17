@@ -11,13 +11,27 @@ pub(crate) struct MethodArea<'a> {
 pub(crate) struct Method<'a> {
     pub stack_size: usize,
     pub local_size: usize,
-    pub codes: &'a [Opcode],
+    pub codes: Vec<Opcode>,
     pub class: &'a str,
+}
+
+impl Method<'_> {
+    pub(crate) fn new(
+        stack_size: usize, local_size: usize,
+        codes: Vec<Opcode>, class: &str,
+    ) -> Method {
+        Method {
+            stack_size,
+            local_size,
+            codes,
+            class,
+        }
+    }
 }
 
 pub(crate) struct Class<'a> {
     pub(crate) super_class: &'a Option<Class<'a>>,
-    pub const_pool: const_pool::ConstPool<'a>,
+    pub const_pool: const_pool::ConstPool,
     pub(crate) methods: HashMap<&'a str, Method<'a>>,
 }
 
@@ -62,7 +76,7 @@ mod tests {
     fn can_put_and_resolve_from_method_table() {
         let mut table = MethodArea::new();
         table.put("foo", Method {
-            codes: &[],
+            codes: vec![],
             stack_size: 2,
             local_size: 0,
             class: "",

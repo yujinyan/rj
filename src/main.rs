@@ -1,9 +1,10 @@
+use std::env;
+
 mod tests;
 mod const_pool;
-mod class_file;
-mod class_parser;
 mod call_stack;
 mod method_area;
+mod parser;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
@@ -28,5 +29,5 @@ enum Opcode {
 
 
 fn main() {
-    // todo
+    let args: Vec<String> = env::args().collect();
 }
