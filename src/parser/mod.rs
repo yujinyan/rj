@@ -89,13 +89,11 @@ impl Reader<'_> {
 
     pub fn read_u16(&mut self) -> u16 {
         self.handle.read(&mut self.u2_buffer);
-        // println!("{:04X?}", self.u2_buffer);
         u16::from_be_bytes(self.u2_buffer)
     }
 
     pub fn read_u32(&mut self) -> u32 {
         self.handle.read(&mut self.u4_buffer);
-        // println!("{:04X?}", self.u4_buffer);
         u32::from_be_bytes(self.u4_buffer)
     }
 

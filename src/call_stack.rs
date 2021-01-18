@@ -143,14 +143,14 @@ mod tests {
     use crate::call_stack::{Frame, FrameResult, JvmStack};
     use crate::const_pool::ConstPool;
     use crate::const_pool::CpInfo::Class as CpClass;
-    use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
+    use crate::const_pool::tests::{sample_const_pool};
     use crate::method_area::{Class, Method, MethodArea};
     use crate::Opcode;
 
     #[test]
     fn create_new_stack() {
         let method_table = MethodArea::new();
-        let const_pool = &ConstPool::new(&CONST_POOL_SAMPLE);
+        let const_pool = &sample_const_pool();
         let method = &Method {
             codes: vec![],
             stack_size: 2,
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn run_single_frame() {
-        let const_pool = &test_const_pool();
+        let const_pool = &sample_const_pool();
         let method = &Method {
             stack_size: 3,
             local_size: 0,
@@ -195,7 +195,7 @@ mod tests {
     /// ```
     #[test]
     fn run_adder() {
-        let const_pool = &test_const_pool();
+        let const_pool = &sample_const_pool();
         let main_method = &Method {
             stack_size: 2,
             local_size: 1,
@@ -225,7 +225,7 @@ mod tests {
         method_area.put("Adder.add:(II)I", add_method);
         method_area.put_class("Adder", crate::method_area::Class {
             super_class: &None,
-            const_pool: ConstPool::new(&CONST_POOL_SAMPLE),
+            const_pool: sample_const_pool(),
             methods: Default::default(),
         });
         let mut jvm_stack = JvmStack::new(256, main_frame, &method_area);

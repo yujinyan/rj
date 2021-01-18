@@ -8,7 +8,8 @@ use crate::method_area::{Class, Method};
 /// const pool table entry
 #[derive(Debug)]
 pub enum CpInfo {
-    // empty placeholder
+    /// Const pool items start with index 1.
+    /// We insert an empty Placeholder at the head.
     Placeholder,
     Class { name_index: u16 },
     FieldRef { class_index: u16, name_and_type_index: u16 },
@@ -53,18 +54,6 @@ impl ConstPool {
         };
     }
 
-    // fixme
-    #[allow(clippy::needless_lifetimes)]
-    pub(crate) fn new<'a>(
-        data: &'a [CpInfo],
-    ) -> ConstPool {
-        unimplemented!()
-        // return ConstPool {
-        //     value: data.to_vec(),
-        //     cache: Default::default(),
-        // };
-    }
-
     pub(crate) fn from_vec(
         data: Vec<CpInfo>
     ) -> ConstPool {
@@ -82,29 +71,28 @@ pub mod tests {
     use crate::method_area::Method;
     use crate::Opcode;
 
-    pub(crate) const CONST_POOL_SAMPLE: [CpInfo; 5] = [
-        CpInfo::Placeholder,
-        CpInfo::MethodRef { class_index: 4, name_and_type_index: 14 },
-        CpInfo::MethodRef { class_index: 3, name_and_type_index: 15 },
-        CpInfo::Class { name_index: 16 },
-        CpInfo::Class { name_index: 17 },
-        // CpInfo::Utf8("<init>".to_string()),
-        // CpInfo::Utf8("()V".to_string()),
-        // CpInfo::Utf8("Code".to_string()),
-        // CpInfo::Utf8("LineNumberTable".to_string()),
-        // CpInfo::Utf8("add".to_string()),
-        // CpInfo::Utf8("(II)I".to_string()),
-        // CpInfo::Utf8("main".to_string()),
-        // CpInfo::Utf8("SourceFile".to_string()),
-        // CpInfo::Utf8("Adder.java".to_string()),
-        // CpInfo::NameAndTuple { name_index: 5, descriptor_index: 6 },
-        // CpInfo::NameAndTuple { name_index: 9, descriptor_index: 10 },
-        // CpInfo::Utf8("Adder".to_string()),
-        // CpInfo::Utf8("java/lang/Object".to_string())
-    ];
-
-    pub(crate) fn test_const_pool() -> ConstPool {
-        ConstPool::new(&CONST_POOL_SAMPLE)
+    pub(crate) fn sample_const_pool() -> ConstPool {
+        let items = vec![
+            CpInfo::Placeholder,
+            CpInfo::MethodRef { class_index: 4, name_and_type_index: 14 },
+            CpInfo::MethodRef { class_index: 3, name_and_type_index: 15 },
+            CpInfo::Class { name_index: 16 },
+            CpInfo::Class { name_index: 17 },
+            CpInfo::Utf8("<init>".to_string()),
+            CpInfo::Utf8("()V".to_string()),
+            CpInfo::Utf8("Code".to_string()),
+            CpInfo::Utf8("LineNumberTable".to_string()),
+            CpInfo::Utf8("add".to_string()),
+            CpInfo::Utf8("(II)I".to_string()),
+            CpInfo::Utf8("main".to_string()),
+            CpInfo::Utf8("SourceFile".to_string()),
+            CpInfo::Utf8("Adder.java".to_string()),
+            CpInfo::NameAndTuple { name_index: 5, descriptor_index: 6 },
+            CpInfo::NameAndTuple { name_index: 9, descriptor_index: 10 },
+            CpInfo::Utf8("Adder".to_string()),
+            CpInfo::Utf8("java/lang/Object".to_string())
+        ];
+        ConstPool::from_vec(items)
     }
 }
 
