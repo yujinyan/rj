@@ -2,14 +2,14 @@ use std::fs;
 
 use crate::call_stack::{Frame, JvmStack};
 use crate::const_pool::ConstPool;
-use crate::method_area::{Method, MethodArea, Class};
+use crate::method_area::{Class, Method, MethodArea};
 use crate::parser::Attribute;
 
 mod tests;
-pub mod const_pool;
-pub mod call_stack;
-pub mod method_area;
-pub mod parser;
+mod const_pool;
+mod call_stack;
+mod method_area;
+mod parser;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]

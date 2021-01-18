@@ -37,26 +37,6 @@ pub(crate) struct ConstPool {
 }
 
 impl ConstPool {
-    pub(crate) fn test(&self) -> String {
-        String::from("abc")
-    }
-
-    // pub(crate) fn resolve_utf8_2(&self, index: u16) -> String {
-    //     match self.value.get(index as usize).unwrap() {
-    //         CpInfo::Utf8(v) => String::from(v),
-    //         CpInfo::Class { name_index } => self.resolve_utf8(*name_index),
-    //         CpInfo::NameAndTuple { name_index, descriptor_index } => Box::leak(format!(
-    //             "{}:{}",// https://stackoverflow.com/a/51286293/6627776
-    //             self.resolve_utf8(*name_index), self.resolve_utf8(*descriptor_index),
-    //         ).into_boxed_str()),
-    //         CpInfo::MethodRef { class_index, name_and_type_index } => Box::leak(format!(
-    //             "{}.{}",
-    //             self.resolve_utf8(*class_index), self.resolve_utf8(*name_and_type_index),
-    //         ).into_boxed_str()),
-    //         _ => panic!("not supported")
-    //     }
-    // }
-
     pub(crate) fn resolve_utf8(&self, index: u16) -> &str {
         return match self.value.get(index as usize).unwrap() {
             CpInfo::Utf8(v) => v,
