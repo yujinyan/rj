@@ -1,4 +1,4 @@
-use crate::parser::class_parser::Reader;
+use crate::parser::Reader;
 use crate::const_pool::{ConstPool, CpInfo};
 
 pub(crate) fn read_const_pool<'a>(reader: &mut Reader) -> ConstPool {

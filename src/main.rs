@@ -1,33 +1,10 @@
-use std::env;
-
-mod tests;
-mod const_pool;
-mod call_stack;
-mod method_area;
-mod parser;
-
-#[allow(non_camel_case_types)]
-#[derive(Debug)]
-enum Opcode {
-    aload_0,
-    iconst_0,
-    iconst_1,
-    iload_0,
-    iload_1,
-    istore_0,
-    istore_1,
-    iadd,
-    ireturn,
-    goto(usize),
-    iinc(usize, i32),
-    bipush(i32),
-    if_icmplt(usize),
-    r#return,
-    invokestatic(usize),
-    invokespecial(u16),
-}
+use std::{env, fs};
+use rj::{parser, run};
+use rj::method_area::MethodArea;
 
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let class_path = args.get(1).expect("no main class passed in");
+    run(class_path);
 }

@@ -1,10 +1,10 @@
 use crate::const_pool::ConstPool;
 use crate::method_area::Method;
 use crate::Opcode;
-use crate::parser::{Attribute, AttributeValue};
-use crate::parser::class_parser::Reader;
+use crate::parser::{Attribute};
+use crate::parser::Reader;
 
-pub(crate) fn read_attribute(reader: &mut Reader, const_pool: &ConstPool) -> AttributeValue {
+pub(crate) fn read_attribute(reader: &mut Reader, const_pool: &ConstPool) -> Attribute {
     let name_index = reader.read_u16();
     let name = const_pool.resolve_utf8(name_index);
     match name {
@@ -13,7 +13,7 @@ pub(crate) fn read_attribute(reader: &mut Reader, const_pool: &ConstPool) -> Att
     }
 }
 
-fn read_code_attribute(reader: &mut Reader) -> AttributeValue {
+fn read_code_attribute(reader: &mut Reader) -> Attribute {
     let length = reader.read_u32();
     let max_stack = reader.read_u16();
     let max_locals = reader.read_u16();
@@ -70,5 +70,5 @@ fn read_code_attribute(reader: &mut Reader) -> AttributeValue {
         dbg!(length, content);
     }
 
-    AttributeValue::Code { max_stack, max_locals, codes }
+    Attribute::Code { max_stack, max_locals, codes }
 }

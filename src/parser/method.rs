@@ -1,4 +1,4 @@
-use crate::parser::class_parser::Reader;
+use crate::parser::Reader;
 use crate::parser;
 use crate::method_area::Method;
 

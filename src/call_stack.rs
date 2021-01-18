@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
 use crate::const_pool::ConstPool;
-use crate::method_area::{Method, MethodArea, Class};
+use crate::method_area::{Class, Method, MethodArea};
 use crate::Opcode;
 
 // §2.5.2
-struct JvmStack<'a> {
+pub(crate) struct JvmStack<'a> {
     frames: Vec<Frame<'a>>,
     method_table: &'a MethodArea<'a>,
 }
 
 // §2.6
-struct Frame<'a> {
+pub(crate) struct Frame<'a> {
     pc: usize,
     // §2.6.1
     locals: Vec<i32>,
@@ -30,7 +30,7 @@ enum FrameResult<'a> {
 }
 
 impl JvmStack<'_> {
-    fn new<'a>(
+    pub(crate) fn new<'a>(
         max_size: usize,
         main: Frame<'a>,
         method_table: &'a MethodArea<'a>,
@@ -41,7 +41,7 @@ impl JvmStack<'_> {
         JvmStack { frames: stack, method_table }
     }
 
-    fn run(&mut self) {
+    pub(crate) fn run(&mut self) {
         while !self.frames.is_empty() {
             let mut frame = self.frames.pop().unwrap();
             match frame.run() {
@@ -72,9 +72,9 @@ impl JvmStack<'_> {
 }
 
 impl Frame<'_> {
-    fn new<'a>(locals: Vec<i32>,
-               method: &'a Method<'a>,
-               constant_pool: &'a ConstPool,
+    pub(crate) fn new<'a>(locals: Vec<i32>,
+                          method: &'a Method<'a>,
+                          constant_pool: &'a ConstPool,
     ) -> Frame<'a> {
         Frame {
             pc: 0,
@@ -96,7 +96,6 @@ impl Frame<'_> {
         let mut stack: &mut Vec<i32> = &mut self.operand_stack;
 
         loop {
-            // println!("stack is {:?}, locals is {:?}", stack, locals);
             let code = match self.method.codes.get(self.pc) {
                 Some(v) => v,
                 None => break,
@@ -143,10 +142,10 @@ impl Frame<'_> {
 mod tests {
     use crate::call_stack::{Frame, FrameResult, JvmStack};
     use crate::const_pool::ConstPool;
-    use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
-    use crate::method_area::{Method, Class, MethodArea};
-    use crate::Opcode;
     use crate::const_pool::CpInfo::Class as CpClass;
+    use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
+    use crate::method_area::{Class, Method, MethodArea};
+    use crate::Opcode;
 
     #[test]
     fn create_new_stack() {
