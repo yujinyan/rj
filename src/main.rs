@@ -1,30 +1,8 @@
-mod tests;
-mod const_pool;
-mod class_file;
-mod class_parser;
-mod call_stack;
-mod method_area;
-
-#[allow(non_camel_case_types)]
-#[derive(Debug)]
-enum Opcode {
-    iload_0,
-    iconst_0,
-    iconst_1,
-    iload_1,
-    istore_0,
-    istore_1,
-    iadd,
-    ireturn,
-    goto(usize),
-    iinc(usize, i32),
-    bipush(i32),
-    if_icmplt(usize),
-    r#return,
-    invokestatic(usize),
-}
+use std::{env, fs};
 
 
 fn main() {
-    // todo
+    let args: Vec<String> = env::args().collect();
+    let class_path = args.get(1).expect("no main class passed in");
+    rj::run(class_path);
 }

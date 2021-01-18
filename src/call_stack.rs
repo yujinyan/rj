@@ -1,24 +1,24 @@
 use std::collections::HashMap;
 
 use crate::const_pool::ConstPool;
-use crate::method_area::{Method, MethodArea, Class};
+use crate::method_area::{Class, Method, MethodArea};
 use crate::Opcode;
 
 // §2.5.2
-struct JvmStack<'a> {
+pub(crate) struct JvmStack<'a> {
     frames: Vec<Frame<'a>>,
     method_table: &'a MethodArea<'a>,
 }
 
 // §2.6
-struct Frame<'a> {
+pub(crate) struct Frame<'a> {
     pc: usize,
     // §2.6.1
     locals: Vec<i32>,
     // §2.6.2
     operand_stack: Vec<i32>,
     // §2.5.5
-    constant_pool: &'a ConstPool<'a>,
+    constant_pool: &'a ConstPool,
     method: &'a Method<'a>,
 }
 
@@ -30,7 +30,7 @@ enum FrameResult<'a> {
 }
 
 impl JvmStack<'_> {
-    fn new<'a>(
+    pub(crate) fn new<'a>(
         max_size: usize,
         main: Frame<'a>,
         method_table: &'a MethodArea<'a>,
@@ -41,7 +41,7 @@ impl JvmStack<'_> {
         JvmStack { frames: stack, method_table }
     }
 
-    fn run(&mut self) {
+    pub(crate) fn run(&mut self) {
         while !self.frames.is_empty() {
             let mut frame = self.frames.pop().unwrap();
             match frame.run() {
@@ -72,9 +72,9 @@ impl JvmStack<'_> {
 }
 
 impl Frame<'_> {
-    fn new<'a>(locals: Vec<i32>,
-               method: &'a Method<'a>,
-               constant_pool: &'a ConstPool,
+    pub(crate) fn new<'a>(locals: Vec<i32>,
+                          method: &'a Method<'a>,
+                          constant_pool: &'a ConstPool,
     ) -> Frame<'a> {
         Frame {
             pc: 0,
@@ -96,7 +96,6 @@ impl Frame<'_> {
         let mut stack: &mut Vec<i32> = &mut self.operand_stack;
 
         loop {
-            // println!("stack is {:?}, locals is {:?}", stack, locals);
             let code = match self.method.codes.get(self.pc) {
                 Some(v) => v,
                 None => break,
@@ -131,7 +130,8 @@ impl Frame<'_> {
                     let result = stack.pop().unwrap() + stack.pop().unwrap();
                     stack.push(result);
                 }
-                Opcode::ireturn => return FrameResult::ReturnValue(stack.pop().unwrap())
+                Opcode::ireturn => return FrameResult::ReturnValue(stack.pop().unwrap()),
+                _ => unimplemented!("opcode {:?}", code)
             }
         }
         FrameResult::End
@@ -142,46 +142,43 @@ impl Frame<'_> {
 mod tests {
     use crate::call_stack::{Frame, FrameResult, JvmStack};
     use crate::const_pool::ConstPool;
-    use crate::const_pool::tests::{CONST_POOL_SAMPLE, test_const_pool};
-    use crate::method_area::{Method, Class, MethodArea};
-    use crate::Opcode;
     use crate::const_pool::CpInfo::Class as CpClass;
+    use crate::const_pool::tests::{sample_const_pool};
+    use crate::method_area::{Class, Method, MethodArea};
+    use crate::Opcode;
 
     #[test]
     fn create_new_stack() {
         let method_table = MethodArea::new();
-        let const_pool = &ConstPool::new(&CONST_POOL_SAMPLE);
-        let frame = Frame::new(Vec::new(), &Method {
-            codes: &[],
+        let const_pool = &sample_const_pool();
+        let method = &Method {
+            codes: vec![],
             stack_size: 2,
             local_size: 0,
             class: "",
-        }, const_pool);
+        };
+        let frame = Frame::new(Vec::new(), method, const_pool);
         let stack = JvmStack::new(128, frame, &method_table);
     }
 
     #[test]
     fn run_single_frame() {
-        let const_pool = &test_const_pool();
-        let mut frame = Frame::new(
-            vec![0; 3],
-            &Method {
-                stack_size: 3,
-                local_size: 0,
-                codes: &[
-                    Opcode::iconst_0,     // 0
-                    Opcode::istore_1,     // 1
-                    Opcode::goto(4),      // 2
-                    Opcode::iinc(1, 1),   // 3
-                    Opcode::iload_1,      // 4
-                    Opcode::bipush(10),   // 5
-                    Opcode::if_icmplt(3), // 6
-                ],
-                class: "",
-            },
-            const_pool,
-        );
-
+        let const_pool = &sample_const_pool();
+        let method = &Method {
+            stack_size: 3,
+            local_size: 0,
+            codes: vec![
+                Opcode::iconst_0,     // 0
+                Opcode::istore_1,     // 1
+                Opcode::goto(4),      // 2
+                Opcode::iinc(1, 1),   // 3
+                Opcode::iload_1,      // 4
+                Opcode::bipush(10),   // 5
+                Opcode::if_icmplt(3), // 6
+            ],
+            class: "",
+        };
+        let mut frame = Frame::new(vec![0; 3], method, const_pool);
         assert_eq!(frame.run(), FrameResult::End);
     }
 
@@ -198,11 +195,11 @@ mod tests {
     /// ```
     #[test]
     fn run_adder() {
-        let const_pool = &test_const_pool();
+        let const_pool = &sample_const_pool();
         let main_method = &Method {
             stack_size: 2,
             local_size: 1,
-            codes: &[
+            codes: vec![
                 Opcode::iconst_1,     // 0
                 Opcode::iconst_1,
                 Opcode::invokestatic(2),
@@ -214,7 +211,7 @@ mod tests {
         let add_method = Method {
             stack_size: 2,
             local_size: 2,
-            codes: &[
+            codes: vec![
                 Opcode::iload_0,
                 Opcode::iload_1,
                 Opcode::iadd,
@@ -228,7 +225,7 @@ mod tests {
         method_area.put("Adder.add:(II)I", add_method);
         method_area.put_class("Adder", crate::method_area::Class {
             super_class: &None,
-            const_pool: ConstPool::new(&CONST_POOL_SAMPLE),
+            const_pool: sample_const_pool(),
             methods: Default::default(),
         });
         let mut jvm_stack = JvmStack::new(256, main_frame, &method_area);
